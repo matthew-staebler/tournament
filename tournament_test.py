@@ -125,6 +125,80 @@ def testPairings():
     print "8. After one match, players with one win are paired."
 
 
+def testReportBye():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Bruno Walton")
+    registerPlayer("Boots O'Neal")
+    registerPlayer("Cathy Burton")
+    registerPlayer("Diane Grant")
+    registerPlayer("Evelyn Smith")
+    standings = playerStandings()
+    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
+    reportMatch(id1, id2)
+    reportMatch(id3, id4)
+    reportMatch(id5, None)
+    standings = playerStandings()
+    for (i, n, w, m) in standings:
+        if m != 1:
+            raise ValueError("Each player should have one match recorded.")
+        if i in (id1, id3, id5) and w != 1:
+            raise ValueError("Each match winner should have one win recorded.")
+        elif i in (id2, id4) and w != 0:
+            raise ValueError("Each match loser should have zero wins recorded.")
+    print "9. After matches with byes, players have updated standings."
+
+
+def testPairingsWithByes():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    registerPlayer("Pinkie Pie")
+    registerPlayer("Cheerio")
+    standings = playerStandings()
+    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
+    reportMatch(id1, id2)
+    reportMatch(id3, id4)
+    reportMatch(id5, None)
+    standings = playerStandings()
+    pairings = swissPairings()
+    if len(pairings) != 3:
+        raise ValueError(
+            "For five players, swissPairings should return three pairs.")
+    number_of_matches_featuring_one_win_players = 0
+    number_of_matches_with_one_win_player_against_zero_win_player = 0
+    number_of_byes = 0
+    for (pid1, pname1, pid2, pname2) in pairings:
+        wins1 = None
+        wins2 = None
+        for (i, n, w, m) in standings:
+            if i == pid1:
+                wins1 = w
+            elif i == pid2:
+                wins2 = w
+        if wins2 == None:
+            number_of_byes += 1
+            if pid1 == id5:
+                raise ValueError("Player should only be given one bye.")
+            if wins1 != 0:
+                raise ValueError("Bye should be given to player with no wins.")
+        elif wins1 == 1 and wins2 == 1:
+            number_of_matches_featuring_one_win_players += 1
+        elif wins1 == 0 and wins2 == 1:
+            number_of_matches_with_one_win_player_against_zero_win_player += 1
+        else:
+            raise ValueError("Incorrect pairing of wins.")
+    if number_of_matches_featuring_one_win_players != 1:
+        raise ValueEror("Round should have one match with both players having one win.")
+    if number_of_matches_with_one_win_player_against_zero_win_player != 1:
+        raise ValueEror("Round should have one match with one player having one win and the other player having no wins.")
+    if number_of_byes != 1:
+        raise ValueError("Round should exactly 1 bye.")
+    print "10. After one match with byes, players are paired appropriately."
+
+
 if __name__ == '__main__':
     testDeleteMatches()
     testDelete()
@@ -134,6 +208,8 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testReportBye()
+    testPairingsWithByes()
     print "Success!  All tests pass!"
 
 

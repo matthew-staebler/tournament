@@ -97,7 +97,7 @@ def reportMatch(winner, loser):
 
     Args:
       winner:  the id number of the player who won
-      loser:  the id number of the player who lost
+      loser:  the id number of the player who lost; or None if this is a bye for the winner
     """
     connection = connect()
     try:
@@ -121,22 +121,35 @@ def swissPairings():
       A list of tuples, each of which contains (id1, name1, id2, name2)
         id1: the first player's unique id
         name1: the first player's name
-        id2: the second player's unique id
-        name2: the second player's name
+        id2: the second player's unique id; or None if this is a bye for the first player
+        name2: the second player's name; or None if this is a bye for the first player
     """
     connection = connect()
     try:
         cursor = connection.cursor()
         cursor.execute(
             """
-            select p.id, p.name
+            select p.id, p.name, count(b.*)
             from player p
                 left join game w on w.winner = p.id
+                left join game b on w.winner = p.id and w.loser is null
             group by p.id
-            order by count(w.*) desc
+            order by count(w.*)
             """)
         rows = cursor.fetchall();
-        return [rows[i] + rows[i+1] for i in range(len(rows)) if i%2==0]
+        matches = [];
+        bye_needed = len(rows) % 2 != 0
+        match = ()
+        for row in rows:
+            if bye_needed and row[2]==0:
+                matches.append(row[0:2] + (None, None))
+                bye_needed = False
+            else:
+                match += row[0:2]
+                if len(match) == 4:
+                    matches.append(match)
+                    match = ()
+        return matches
     finally:
         connection.close()
 
