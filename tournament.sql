@@ -14,8 +14,9 @@ create table player (
 
 create table game (
 	id serial,
-	winner integer references player(id) not null,
-	loser integer references player(id),
+	player1 integer references player(id) not null,
+	player2 integer references player(id),
+	is_tie boolean not null,
 	primary key (id),
-	constraint different_players check (winner != loser)
+	constraint different_players check (player1!=player2)
 );

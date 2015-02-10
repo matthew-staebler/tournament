@@ -69,10 +69,11 @@ def playerStandings():
     tied for first place if there is currently a tie.
 
     Returns:
-      A list of tuples, each of which contains (id, name, wins, matches):
+      A list of tuples, each of which contains (id, name, wins, ties, matches):
         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
         wins: the number of matches the player has won
+        ties: the number of matches the player has tied
         matches: the number of matches the player has played
     """
     connection = connect()
@@ -80,10 +81,11 @@ def playerStandings():
         cursor = connection.cursor()
         cursor.execute(
             """
-            select p.id, p.name, count(w.*), count(m.*)
+            select p.id, p.name, count(w.*), count(t.*), count(m.*)
             from player p
-                left join game w on w.winner = p.id
-                left join game m on (m.winner = p.id or m.loser = p.id)
+                left join game w on w.player1=p.id and not w.is_tie
+                left join game t on t.player1=p.id and w.is_tie
+                left join game m on m.player1=p.id or m.player2=p.id
             group by p.id
             """)
         return cursor.fetchall();
@@ -102,7 +104,7 @@ def reportMatch(winner, loser):
     connection = connect()
     try:
         cursor = connection.cursor()
-        cursor.execute("insert into game (winner, loser) values(%(winner)s, %(loser)s);",
+        cursor.execute("insert into game (player1, player2, is_tie) values(%(winner)s, %(loser)s, false);",
             {'winner': winner, 'loser': loser});
         connection.commit()
     finally:
@@ -131,8 +133,8 @@ def swissPairings():
             """
             select p.id, p.name, count(b.*)
             from player p
-                left join game w on w.winner = p.id
-                left join game b on w.winner = p.id and w.loser is null
+                left join game w on w.player1=p.id and not w.is_tie
+                left join game b on w.player1=p.id and w.player2 is null
             group by p.id
             order by count(w.*)
             """)

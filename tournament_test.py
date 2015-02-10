@@ -68,10 +68,10 @@ def testStandingsBeforeMatches():
                          "they have played any matches.")
     elif len(standings) > 2:
         raise ValueError("Only registered players should appear in standings.")
-    if len(standings[0]) != 4:
-        raise ValueError("Each playerStandings row should have four columns.")
-    [(id1, name1, wins1, matches1), (id2, name2, wins2, matches2)] = standings
-    if matches1 != 0 or matches2 != 0 or wins1 != 0 or wins2 != 0:
+    if len(standings[0]) != 5:
+        raise ValueError("Each playerStandings row should have five columns.")
+    [(id1, name1, wins1, ties1, matches1), (id2, name2, wins2, ties2, matches2)] = standings
+    if matches1 != 0 or matches2 != 0 or wins1 != 0 or wins2 != 0 or ties1 != 0 or ties2 != 0:
         raise ValueError(
             "Newly registered players should have no matches or wins.")
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
@@ -92,13 +92,15 @@ def testReportMatches():
     reportMatch(id1, id2)
     reportMatch(id3, id4)
     standings = playerStandings()
-    for (i, n, w, m) in standings:
+    for (i, n, w, t, m) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
         if i in (id1, id3) and w != 1:
             raise ValueError("Each match winner should have one win recorded.")
         elif i in (id2, id4) and w != 0:
             raise ValueError("Each match loser should have zero wins recorded.")
+        if t != 0:
+            raise ValueError("There should not be any ties.")
     print "7. After a match, players have updated standings."
 
 
@@ -140,13 +142,15 @@ def testReportBye():
     reportMatch(id3, id4)
     reportMatch(id5, None)
     standings = playerStandings()
-    for (i, n, w, m) in standings:
+    for (i, n, w, t, m) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
         if i in (id1, id3, id5) and w != 1:
             raise ValueError("Each match winner should have one win recorded.")
         elif i in (id2, id4) and w != 0:
             raise ValueError("Each match loser should have zero wins recorded.")
+        if t != 0:
+            raise ValueError("There should not be any ties.")
     print "9. After matches with byes, players have updated standings."
 
 
@@ -171,7 +175,7 @@ def testPairingsWithByes():
             raise ValueError("Player should only be given one bye.")
         if pid1 == pid2:
             raise ValueError("Player should not be matched up against herself.")
-        actual_pairs.append([w for (i, n, w, m) in standings if i==pid1 or i==pid2])
+        actual_pairs.append([w for (i, n, w, t, m) in standings if i==pid1 or i==pid2])
     if Counter([str(p) for p in correct_pairs]) != Counter([str(p) for p in actual_pairs]):
         raise ValueError(
             "After one match, players should be matched to nearest-win competitor.")
