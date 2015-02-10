@@ -106,7 +106,7 @@ def reportMatch(player1, player2, is_tie):
     try:
         cursor = connection.cursor()
         cursor.execute("insert into game (player1, player2, is_tie) values(%(winner)s, %(loser)s, %(is_tie)s);",
-            {'winner': winner, 'loser': loser, 'is_tie': is_tie});
+            {'winner': player1, 'loser': player2, 'is_tie': is_tie});
         connection.commit()
     finally:
         connection.close()
