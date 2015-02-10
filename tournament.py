@@ -94,18 +94,19 @@ def playerStandings():
     
 
 
-def reportMatch(winner, loser):
+def reportMatch(player1, player2, is_tie):
     """Records the outcome of a single match between two players.
 
     Args:
-      winner:  the id number of the player who won
-      loser:  the id number of the player who lost; or None if this is a bye for the winner
+      player1:  the id number of the player who won or tied
+      player2:  the id number of the player who lost or tied; or None if this is a bye for the winner
+      is_tie: flag indicating whether this match was a tie
     """
     connection = connect()
     try:
         cursor = connection.cursor()
-        cursor.execute("insert into game (player1, player2, is_tie) values(%(winner)s, %(loser)s, false);",
-            {'winner': winner, 'loser': loser});
+        cursor.execute("insert into game (player1, player2, is_tie) values(%(winner)s, %(loser)s, %(is_tie)s);",
+            {'winner': winner, 'loser': loser, 'is_tie': is_tie});
         connection.commit()
     finally:
         connection.close()
@@ -134,9 +135,10 @@ def swissPairings():
             select p.id, p.name, count(b.*)
             from player p
                 left join game w on w.player1=p.id and not w.is_tie
+                left join game t on (t.player1=p.id or t.player2=p.id) and w.is_tie
                 left join game b on w.player1=p.id and w.player2 is null
             group by p.id
-            order by count(w.*)
+            order by count(w.*), count(t.*)
             """)
         rows = cursor.fetchall();
         matches = [];

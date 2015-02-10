@@ -89,8 +89,8 @@ def testReportMatches():
     registerPlayer("Diane Grant")
     standings = playerStandings()
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(id1, id2)
-    reportMatch(id3, id4)
+    reportMatch(id1, id2, false)
+    reportMatch(id3, id4, false)
     standings = playerStandings()
     for (i, n, w, t, m) in standings:
         if m != 1:
@@ -113,8 +113,8 @@ def testPairings():
     registerPlayer("Pinkie Pie")
     standings = playerStandings()
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(id1, id2)
-    reportMatch(id3, id4)
+    reportMatch(id1, id2, false)
+    reportMatch(id3, id4, false)
     pairings = swissPairings()
     if len(pairings) != 2:
         raise ValueError(
@@ -138,9 +138,9 @@ def testReportBye():
     registerPlayer("Evelyn Smith")
     standings = playerStandings()
     [id1, id2, id3, id4, id5] = [row[0] for row in standings]
-    reportMatch(id1, id2)
-    reportMatch(id3, id4)
-    reportMatch(id5, None)
+    reportMatch(id1, id2, false)
+    reportMatch(id3, id4, false)
+    reportMatch(id5, None, false)
     standings = playerStandings()
     for (i, n, w, t, m) in standings:
         if m != 1:
@@ -163,9 +163,9 @@ def testPairingsWithByes():
     registerPlayer("Pinkie Pie")
     registerPlayer("Cheerio")
     [id1, id2, id3, id4, id5] = [row[0] for row in playerStandings()]
-    reportMatch(id1, id2)
-    reportMatch(id3, id4)
-    reportMatch(id5, None)
+    reportMatch(id1, id2, false)
+    reportMatch(id3, id4, false)
+    reportMatch(id5, None, false)
     pairings = swissPairings()
     correct_pairs = [[1L, 1L], [1L, 0L], [0L]]
     actual_pairs = []
