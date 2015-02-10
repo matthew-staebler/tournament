@@ -3,6 +3,7 @@
 # Test cases for tournament.py
 
 from tournament import *
+from collections import Counter
 
 def testDeleteMatches():
     deleteMatches()
@@ -157,45 +158,23 @@ def testPairingsWithByes():
     registerPlayer("Applejack")
     registerPlayer("Pinkie Pie")
     registerPlayer("Cheerio")
-    standings = playerStandings()
-    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
+    [id1, id2, id3, id4, id5] = [row[0] for row in playerStandings()]
     reportMatch(id1, id2)
     reportMatch(id3, id4)
     reportMatch(id5, None)
-    standings = playerStandings()
     pairings = swissPairings()
-    if len(pairings) != 3:
-        raise ValueError(
-            "For five players, swissPairings should return three pairs.")
-    number_of_matches_featuring_one_win_players = 0
-    number_of_matches_with_one_win_player_against_zero_win_player = 0
-    number_of_byes = 0
+    correct_pairs = [[1L, 1L], [1L, 0L], [0L]]
+    actual_pairs = []
+    standings = playerStandings()
     for (pid1, pname1, pid2, pname2) in pairings:
-        wins1 = None
-        wins2 = None
-        for (i, n, w, m) in standings:
-            if i == pid1:
-                wins1 = w
-            elif i == pid2:
-                wins2 = w
-        if wins2 == None:
-            number_of_byes += 1
-            if pid1 == id5:
-                raise ValueError("Player should only be given one bye.")
-            if wins1 != 0:
-                raise ValueError("Bye should be given to player with no wins.")
-        elif wins1 == 1 and wins2 == 1:
-            number_of_matches_featuring_one_win_players += 1
-        elif wins1 == 0 and wins2 == 1:
-            number_of_matches_with_one_win_player_against_zero_win_player += 1
-        else:
-            raise ValueError("Incorrect pairing of wins.")
-    if number_of_matches_featuring_one_win_players != 1:
-        raise ValueEror("Round should have one match with both players having one win.")
-    if number_of_matches_with_one_win_player_against_zero_win_player != 1:
-        raise ValueEror("Round should have one match with one player having one win and the other player having no wins.")
-    if number_of_byes != 1:
-        raise ValueError("Round should exactly 1 bye.")
+        if pid2 == None and pid1 == id5:
+            raise ValueError("Player should only be given one bye.")
+        if pid1 == pid2:
+            raise ValueError("Player should not be matched up against herself.")
+        actual_pairs.append([w for (i, n, w, m) in standings if i==pid1 or i==pid2])
+    if Counter([str(p) for p in correct_pairs]) != Counter([str(p) for p in actual_pairs]):
+        raise ValueError(
+            "After one match, players should be matched to nearest-win competitor.")
     print "10. After one match with byes, players are paired appropriately."
 
 
