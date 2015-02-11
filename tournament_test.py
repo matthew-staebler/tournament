@@ -12,12 +12,14 @@ def testDeleteMatches():
 
 def testDelete():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     print "2. Player records can be deleted."
 
 
 def testCount():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     c = countPlayers()
     if c == '0':
@@ -30,6 +32,7 @@ def testCount():
 
 def testRegister():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Chandra Nalaar")
     c = countPlayers()
@@ -41,6 +44,7 @@ def testRegister():
 
 def testRegisterCountDelete():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Markov Chaney")
     registerPlayer("Joe Malik")
@@ -55,14 +59,26 @@ def testRegisterCountDelete():
     if c != 0:
         raise ValueError("After deleting, countPlayers should return zero.")
     print "5. Players can be registered and deleted."
+    
+    
+def testCreateTournament():
+    deleteMatches()
+    deleteTournaments()
+    deletePlayers()
+    tournament_id = createTournament("tournament1")
+    if tournament_id < 0:
+        raise ValueError("Tournament not created with valid ID.")
+    print "6. Tournaments can be created."
 
 
 def testStandingsBeforeMatches():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Melpomene Murray")
     registerPlayer("Randy Schwartz")
-    standings = playerStandings()
+    tournament_id = createTournament("tournament1")
+    standings = playerStandings(tournament_id)
     if len(standings) < 2:
         raise ValueError("Players should appear in playerStandings even before "
                          "they have played any matches.")
@@ -77,21 +93,23 @@ def testStandingsBeforeMatches():
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
         raise ValueError("Registered players' names should appear in standings, "
                          "even if they have no matches played.")
-    print "6. Newly registered players appear in the standings with no matches."
+    print "7. Newly registered players appear in the standings with no matches."
 
 
 def testReportMatches():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Bruno Walton")
     registerPlayer("Boots O'Neal")
     registerPlayer("Cathy Burton")
     registerPlayer("Diane Grant")
-    standings = playerStandings()
+    tournament_id = createTournament("tournament1")
+    standings = playerStandings(tournament_id)
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(id1, id2, False)
-    reportMatch(id3, id4, False)
-    standings = playerStandings()
+    reportMatch(tournament_id, id1, id2, False)
+    reportMatch(tournament_id, id3, id4, False)
+    standings = playerStandings(tournament_id)
     for (i, n, w, t, m) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
@@ -101,21 +119,23 @@ def testReportMatches():
             raise ValueError("Each match loser should have zero wins recorded.")
         if t != 0:
             raise ValueError("There should not be any ties.")
-    print "7. After a match, players have updated standings."
+    print "8. After a match, players have updated standings."
 
 
 def testPairings():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Twilight Sparkle")
     registerPlayer("Fluttershy")
     registerPlayer("Applejack")
     registerPlayer("Pinkie Pie")
-    standings = playerStandings()
+    tournament_id = createTournament("tournament1")
+    standings = playerStandings(tournament_id)
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(id1, id2, False)
-    reportMatch(id3, id4, False)
-    pairings = swissPairings()
+    reportMatch(tournament_id, id1, id2, False)
+    reportMatch(tournament_id, id3, id4, False)
+    pairings = swissPairings(tournament_id)
     if len(pairings) != 2:
         raise ValueError(
             "For four players, swissPairings should return two pairs.")
@@ -125,23 +145,25 @@ def testPairings():
     if correct_pairs != actual_pairs:
         raise ValueError(
             "After one match, players with one win should be paired.")
-    print "8. After one match, players with one win are paired."
+    print "9. After one match, players with one win are paired."
 
 
 def testReportBye():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Bruno Walton")
     registerPlayer("Boots O'Neal")
     registerPlayer("Cathy Burton")
     registerPlayer("Diane Grant")
     registerPlayer("Evelyn Smith")
-    standings = playerStandings()
+    tournament_id = createTournament("tournament1")
+    standings = playerStandings(tournament_id)
     [id1, id2, id3, id4, id5] = [row[0] for row in standings]
-    reportMatch(id1, id2, False)
-    reportMatch(id3, id4, False)
-    reportMatch(id5, None, False)
-    standings = playerStandings()
+    reportMatch(tournament_id, id1, id2, False)
+    reportMatch(tournament_id, id3, id4, False)
+    reportMatch(tournament_id, id5, None, False)
+    standings = playerStandings(tournament_id)
     for (i, n, w, t, m) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
@@ -151,25 +173,27 @@ def testReportBye():
             raise ValueError("Each match loser should have zero wins recorded.")
         if t != 0:
             raise ValueError("There should not be any ties.")
-    print "9. After matches with byes, players have updated standings."
+    print "10. After matches with byes, players have updated standings."
 
 
 def testPairingsWithByes():
     deleteMatches()
+    deleteTournaments()
     deletePlayers()
     registerPlayer("Twilight Sparkle")
     registerPlayer("Fluttershy")
     registerPlayer("Applejack")
     registerPlayer("Pinkie Pie")
     registerPlayer("Cheerio")
-    [id1, id2, id3, id4, id5] = [row[0] for row in playerStandings()]
-    reportMatch(id1, id2, False)
-    reportMatch(id3, id4, False)
-    reportMatch(id5, None, False)
-    pairings = swissPairings()
+    tournament_id = createTournament("tournament1")
+    [id1, id2, id3, id4, id5] = [row[0] for row in playerStandings(tournament_id)]
+    reportMatch(tournament_id, id1, id2, False)
+    reportMatch(tournament_id, id3, id4, False)
+    reportMatch(tournament_id, id5, None, False)
+    pairings = swissPairings(tournament_id)
     correct_pairs = [[1L, 1L], [1L, 0L], [0L]]
     actual_pairs = []
-    standings = playerStandings()
+    standings = playerStandings(tournament_id)
     for (pid1, pname1, pid2, pname2) in pairings:
         if pid2 == None and pid1 == id5:
             raise ValueError("Player should only be given one bye.")
@@ -179,7 +203,60 @@ def testPairingsWithByes():
     if Counter([str(p) for p in correct_pairs]) != Counter([str(p) for p in actual_pairs]):
         raise ValueError(
             "After one match, players should be matched to nearest-win competitor.")
-    print "10. After one match with byes, players are paired appropriately."
+    print "11. After one match with byes, players are paired appropriately."
+
+
+def testReportMatchesWithTies():
+    deleteMatches()
+    deleteTournaments()
+    deletePlayers()
+    registerPlayer("Bruno Walton")
+    registerPlayer("Boots O'Neal")
+    registerPlayer("Cathy Burton")
+    registerPlayer("Diane Grant")
+    tournament_id = createTournament("tournament1")
+    standings = playerStandings(tournament_id)
+    [id1, id2, id3, id4] = [row[0] for row in standings]
+    reportMatch(tournament_id, id1, id2, False)
+    reportMatch(tournament_id, id3, id4, True)
+    standings = playerStandings(tournament_id)
+    for (i, n, w, t, m) in standings:
+        if m != 1:
+            raise ValueError("Each player should have one match recorded.")
+        if i in (id1,) and w != 1:
+            raise ValueError("Each match winner should have one win recorded.")
+        elif i in (id2, id3, id4) and w != 0:
+            raise ValueError("Each match non-winner should have zero wins recorded.")
+        if i in (id1, id2) and t != 0:
+            raise ValueError("Each match winner and loser should have zero ties recorded.")
+        elif i in (id3, id4) and t != 1:
+            raise ValueError("Each tying player should have one tie recorded.")
+    print "12. After a match with ties, players have updated standings."
+
+
+def testPairingsWithTies():
+    deleteMatches()
+    deleteTournaments()
+    deletePlayers()
+    for i in range(0,6):
+        registerPlayer("player" + str(i))
+    tournament_id = createTournament("tournament1")
+    ids = [row[0] for row in playerStandings(tournament_id)]
+    reportMatch(tournament_id, ids[0], ids[1], False)
+    reportMatch(tournament_id, ids[2], ids[3], False)
+    reportMatch(tournament_id, ids[4], ids[5], True)
+    pairings = swissPairings(tournament_id)
+    correct_pairs = [[(1L, 0L), (1L, 0L)], [(0L, 1L), (0L, 1L)], [(0L, 0L), (0L, 0L)]]
+    actual_pairs = []
+    standings = playerStandings(tournament_id)
+    for (pid1, pname1, pid2, pname2) in pairings:
+        if pid1 == pid2:
+            raise ValueError("Player should not be matched up against herself.")
+        actual_pairs.append([(w, t) for (i, n, w, t, m) in standings if i==pid1 or i==pid2])
+    if Counter([str(p) for p in correct_pairs]) != Counter([str(p) for p in actual_pairs]):
+        raise ValueError(
+            "After one match, players should be matched to nearest-win competitor.")
+    print "13. After one match with ties, players are paired appropriately."
 
 
 if __name__ == '__main__':
@@ -188,11 +265,14 @@ if __name__ == '__main__':
     testCount()
     testRegister()
     testRegisterCountDelete()
+    testCreateTournament()
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
     testReportBye()
     testPairingsWithByes()
+    testReportMatchesWithTies()
+    testPairingsWithTies()
     print "Success!  All tests pass!"
 
 

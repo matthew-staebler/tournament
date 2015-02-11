@@ -7,13 +7,20 @@
 -- these lines here.
 
 create table player (
-	id	serial,
+	id serial,
+	name text not null,
+	primary key (id)
+);
+
+create table tournament (
+	id serial,
 	name text not null,
 	primary key (id)
 );
 
 create table game (
 	id serial,
+	tournament_id integer references tournament(id) not null,
 	player1 integer references player(id) not null,
 	player2 integer references player(id),
 	is_tie boolean not null,
