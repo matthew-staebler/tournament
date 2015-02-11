@@ -107,8 +107,8 @@ def testReportMatches():
     tournament_id = createTournament("tournament1")
     standings = playerStandings(tournament_id)
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(tournament_id, id1, id2, False)
-    reportMatch(tournament_id, id3, id4, False)
+    reportMatch(tournament_id, id1, id2, id1)
+    reportMatch(tournament_id, id3, id4, id3)
     standings = playerStandings(tournament_id)
     for (i, n, w, t, m) in standings:
         if m != 1:
@@ -133,8 +133,8 @@ def testPairings():
     tournament_id = createTournament("tournament1")
     standings = playerStandings(tournament_id)
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(tournament_id, id1, id2, False)
-    reportMatch(tournament_id, id3, id4, False)
+    reportMatch(tournament_id, id1, id2, id1)
+    reportMatch(tournament_id, id3, id4, id3)
     pairings = swissPairings(tournament_id)
     if len(pairings) != 2:
         raise ValueError(
@@ -160,9 +160,9 @@ def testReportBye():
     tournament_id = createTournament("tournament1")
     standings = playerStandings(tournament_id)
     [id1, id2, id3, id4, id5] = [row[0] for row in standings]
-    reportMatch(tournament_id, id1, id2, False)
-    reportMatch(tournament_id, id3, id4, False)
-    reportMatch(tournament_id, id5, None, False)
+    reportMatch(tournament_id, id1, id2, id1)
+    reportMatch(tournament_id, id3, id4, id3)
+    reportMatch(tournament_id, id5, None, id5)
     standings = playerStandings(tournament_id)
     for (i, n, w, t, m) in standings:
         if m != 1:
@@ -187,9 +187,9 @@ def testPairingsWithByes():
     registerPlayer("Cheerio")
     tournament_id = createTournament("tournament1")
     [id1, id2, id3, id4, id5] = [row[0] for row in playerStandings(tournament_id)]
-    reportMatch(tournament_id, id1, id2, False)
-    reportMatch(tournament_id, id3, id4, False)
-    reportMatch(tournament_id, id5, None, False)
+    reportMatch(tournament_id, id1, id2, id1)
+    reportMatch(tournament_id, id3, id4, id3)
+    reportMatch(tournament_id, id5, None, id5)
     pairings = swissPairings(tournament_id)
     correct_pairs = [[1L, 1L], [1L, 0L], [0L]]
     actual_pairs = []
@@ -217,8 +217,8 @@ def testReportMatchesWithTies():
     tournament_id = createTournament("tournament1")
     standings = playerStandings(tournament_id)
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(tournament_id, id1, id2, False)
-    reportMatch(tournament_id, id3, id4, True)
+    reportMatch(tournament_id, id1, id2, id1)
+    reportMatch(tournament_id, id3, id4, None)
     standings = playerStandings(tournament_id)
     for (i, n, w, t, m) in standings:
         if m != 1:
@@ -242,9 +242,9 @@ def testPairingsWithTies():
         registerPlayer("player" + str(i))
     tournament_id = createTournament("tournament1")
     ids = [row[0] for row in playerStandings(tournament_id)]
-    reportMatch(tournament_id, ids[0], ids[1], False)
-    reportMatch(tournament_id, ids[2], ids[3], False)
-    reportMatch(tournament_id, ids[4], ids[5], True)
+    reportMatch(tournament_id, ids[0], ids[1], ids[0])
+    reportMatch(tournament_id, ids[2], ids[3], ids[2])
+    reportMatch(tournament_id, ids[4], ids[5], None)
     pairings = swissPairings(tournament_id)
     correct_pairs = [[(1L, 0L), (1L, 0L)], [(0L, 1L), (0L, 1L)], [(0L, 0L), (0L, 0L)]]
     actual_pairs = []

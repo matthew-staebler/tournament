@@ -23,7 +23,11 @@ create table game (
 	tournament_id integer references tournament(id) not null,
 	player1 integer references player(id) not null,
 	player2 integer references player(id),
-	is_tie boolean not null,
 	primary key (id),
 	constraint different_players check (player1!=player2)
+);
+
+create table game_result (
+	game_id integer references game(id) not null,
+	winner integer references player(id) not null
 );

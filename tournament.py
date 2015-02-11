@@ -16,6 +16,7 @@ def deleteMatches():
     connection = connect()
     try:
         cursor = connection.cursor()
+        cursor.execute("delete from game_result;")
         cursor.execute("delete from game;")
         connection.commit()
     finally:
@@ -114,11 +115,11 @@ def playerStandings(tournament):
         cursor = connection.cursor()
         cursor.execute(
             """
-            select p.id, p.name, count(w.*), count(t.*), count(m.*)
+            select p.id, p.name, count(w.*), count(g.*)-(count(w.*)+count(l.*)), count(g.*)
             from player p
-                left join game w on w.tournament_id=%(tournament)s and w.player1=p.id and not w.is_tie
-                left join game t on t.tournament_id=%(tournament)s and (t.player1=p.id or t.player2=p.id) and t.is_tie
-                left join game m on m.tournament_id=%(tournament)s and m.player1=p.id or m.player2=p.id
+                left join game g on g.tournament_id=%(tournament)s and (g.player1=p.id or g.player2=p.id)
+                left join game_result w on w.game_id=g.id and w.winner=p.id
+                left join game_result l on l.game_id=g.id and l.winner!=p.id
             group by p.id
             """,
             {'tournament': tournament})
@@ -128,24 +129,34 @@ def playerStandings(tournament):
     
 
 
-def reportMatch(tournament, player1, player2, is_tie):
+def reportMatch(tournament, player1, player2, winner):
     """Records the outcome of a single match between two players.
 
     Args:
       tournament: the id of the tournament to which the match belongs
-      player1:  the id number of the player who won or tied
-      player2:  the id number of the player who lost or tied; or None if this is a bye for the winner
-      is_tie: flag indicating whether this match was a tie
+      player1:  the id number of the first player
+      player2:  the id number of the second player; or None if this is a bye for the first player
+      winner: the id number of the winning player. This must be either (1) player1 or player2,
+              in the case of a winner or (2) None in the case of a tie.
     """
     connection = connect()
     try:
         cursor = connection.cursor()
         cursor.execute(
             """
-            insert into game (tournament_id, player1, player2, is_tie)
-            values(%(tournament)s, %(winner)s, %(loser)s, %(is_tie)s);
+            insert into game (tournament_id, player1, player2)
+            values(%(tournament)s, %(player1)s, %(player2)s)
+            returning id;
             """,
-            {'tournament': tournament, 'winner': player1, 'loser': player2, 'is_tie': is_tie});
+            {'tournament': tournament, 'player1': player1, 'player2': player2})
+        game_id = cursor.fetchone()[0]
+        if winner:
+            cursor.execute(
+                """
+                insert into game_result (game_id, winner)
+                values(%(game_id)s, %(winner)s);
+                """,
+                {'game_id': game_id, 'winner': winner})
         connection.commit()
     finally:
         connection.close()
@@ -176,11 +187,12 @@ def swissPairings(tournament):
             """
             select p.id, p.name, count(b.*)
             from player p
-                left join game w on w.tournament_id=%(tournament)s and w.player1=p.id and not w.is_tie
-                left join game t on t.tournament_id=%(tournament)s and (t.player1=p.id or t.player2=p.id) and t.is_tie
-                left join game b on b.tournament_id=%(tournament)s and b.player1=p.id and b.player2 is null
+                left join game g on g.tournament_id=%(tournament)s and (g.player1=p.id or g.player2=p.id)
+                left join game_result w on w.game_id=g.id and w.winner=p.id
+                left join game_result l on l.game_id=g.id and l.winner!=p.id
+                left join game b on b.id=g.id and b.player2 is null
             group by p.id
-            order by count(w.*), count(t.*)
+            order by count(w.*), count(l.*) desc
             """,
             {'tournament': tournament})
         rows = cursor.fetchall();
