@@ -115,14 +115,11 @@ def playerStandings(tournament):
         cursor = connection.cursor()
         cursor.execute(
             """
-            select p.id, p.name, count(w.*), count(g.*)-(count(w.*)+count(l.*)), count(g.*)
-            from player p
-                left join game g on g.tournament_id=%(tournament)s and (g.player1=p.id or g.player2=p.id)
-                left join game_result w on w.game_id=g.id and w.winner=p.id
-                left join game_result l on l.game_id=g.id and l.winner!=p.id
-            group by p.id
+            select player_id, player_name, wins, ties, games
+            from player_record
+			where tournament_id=%s
             """,
-            {'tournament': tournament})
+            (tournament,))
         return cursor.fetchall();
     finally:
         connection.close()
@@ -185,16 +182,12 @@ def swissPairings(tournament):
         cursor = connection.cursor()
         cursor.execute(
             """
-            select p.id, p.name, count(b.*)
-            from player p
-                left join game g on g.tournament_id=%(tournament)s and (g.player1=p.id or g.player2=p.id)
-                left join game_result w on w.game_id=g.id and w.winner=p.id
-                left join game_result l on l.game_id=g.id and l.winner!=p.id
-                left join game b on b.id=g.id and b.player2 is null
-            group by p.id
-            order by count(w.*), count(l.*) desc
+            select p.player_id, p.player_name, p.byes
+            from player_record p, opponent_record o
+			where p.tournament_id=%s and p.tournament_id=o.tournament_id and p.player_id=o.player_id
+            order by p.wins, p.losses desc, o.wins, o.losses desc
             """,
-            {'tournament': tournament})
+            (tournament,))
         rows = cursor.fetchall();
         matches = [];
         bye_needed = len(rows) % 2 != 0
